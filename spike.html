@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スパイク3秒カウントチェッカー</title>
+    <!-- 検索エンジン対策 -->
+    <meta name="robots" content="noindex,nofollow">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            text-align: center;
+            margin: 30px auto;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 5px;
+        }
+        #spikeSound {
+            font-size: 24px;
+            color: red;
+            margin-top: 20px;
+        }
+        .desc {
+            text-align: left;
+            font-size: 14px;
+            background: #f5f5f5;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        #rank {
+            font-size: 20px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>【スパイクの解除音鳴ってから3秒を数えれるかどうかチェッカー】</h1>
+
+<div class="desc">
+<p>
+スパイクの解除音が鳴ってから <strong>3.5秒</strong> でハーフ解除になるため、<br>
+おおよそ <strong>3秒前後でピークすると強く出やすい</strong> と考えられます。<br>
+より安全にいきたい場合は、<strong>2.7秒前後</strong> を目安にするのも良いでしょう。
+</p>
+<p>
+本ツールでは、まずは基準として <strong>「3秒」固定</strong> で練習できるようにしています。<br>
+2.7秒を狙いたい方は、まずこのツールで「3秒」を正確に取れるようになってから、<br>
+そこから自分で <strong>0.3秒短くカウントする感覚</strong> を身につけてみてください。
+</p>
+<p>
+＜使い方＞<br>
+1. 「開始」ボタンを押します。<br>
+2. いつ鳴るか分からないランダムなタイミングで、スパイクの解除音が再生されます。<br>
+3. 解除音が鳴ってから、3秒経ったと思ったタイミングで「3秒！」ボタンを押します。<br>
+4. 「2.73秒でした」のように、実際に何秒だったかが結果として表示されます。
+</p>
+</div>
+
+<p>「開始」を押してスパイク解除音を待ち、3秒経ったら「3秒！」を押してください。</p>
+
+<button id="startButton">開始</button>
+<button id="countButton" disabled>3秒！</button>
+
+<p id="spikeSound"></p>
+<p id="result"></p>
+<p id="rank"></p>
+
+<audio id="spikeAudio" src="valorant-defuse.mp3"></audio>
+
+<script>
+    let startTime = null;
+    let timeoutId = null;
+    let isRunning = false;
+
+    const startButton = document.getElementById('startButton');
+    const countButton = document.getElementById('countButton');
+    const spikeLabel  = document.getElementById('spikeSound');
+    const resultLabel = document.getElementById('result');
+    const rankLabel   = document.getElementById('rank');
+    const spikeAudio  = document.getElementById('spikeAudio');
+
+    startButton.addEventListener('click', function () {
+        if (isRunning) return;
+        isRunning = true;
+
+        resultLabel.textContent = '';
+        rankLabel.textContent   = '';
+        spikeLabel.textContent  = '';
+        countButton.disabled    = true;
+        startButton.disabled    = true;
+
+        const randomWaitTime = Math.random() * 3000 + 2000; // 2〜5秒
+        timeoutId = setTimeout(function () {
+            spikeAudio.currentTime = 0;
+            spikeAudio.play();
+
+            spikeLabel.textContent = "スパイク解除音！ 3秒をカウントしてください！";
+            startTime = performance.now();
+            countButton.disabled = false;
+        }, randomWaitTime);
+    });
+
+    countButton.addEventListener('click', function () {
+        if (startTime === null) return;
+
+        const currentTime = performance.now();
+        const elapsedTime = (currentTime - startTime) / 1000;
+        const diff = Math.abs(elapsedTime - 3.0); // 3秒との差
+
+        resultLabel.textContent = `あなたのタイムは ${elapsedTime.toFixed(2)} 秒でした！`;
+
+        let rank = "";
+        let comment = "";
+
+        if (diff <= 0.05) {
+            rank = "SS";
+        } else if (diff <= 0.10) {
+            rank = "S";
+        } else if (diff <= 0.20) {
+            rank = "A";
+        } else if (diff <= 0.30) {
+            rank = "B";
+        } else if (diff <= 0.50) {
+            rank = "C";
+        } else {
+            rank = "D";
+        }
+
+        rankLabel.textContent = `ランク: ${rank}　(${comment})`;
+
+        countButton.disabled = true;
+        startTime = null;
+        isRunning = false;
+        startButton.disabled = false;
+    });
+</script>
+
+</body>
+</html>
+
